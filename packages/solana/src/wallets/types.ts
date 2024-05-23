@@ -8,34 +8,45 @@ export interface StandardWallet extends Wallet {
   isStandardWallet: boolean;
 }
 
-export interface WalletFactory {
-  create: (getWalletConnect?: () => Promise<IUniversalProvider | undefined>) => Wallet;
+export interface AdapterWallet extends Wallet {
+  isMetaMaskSnap?: boolean;
+  adapter?: Adapter;
+}
+
+export interface WalletConnectWallet extends Wallet {
+  isWalletConnect: boolean;
+  adapter: WalletConnectWalletAdapter;
+}
+
+export interface WalletFactory<W extends Wallet = Wallet> {
+  create: (getWalletConnect?: () => Promise<IUniversalProvider | undefined>) => W;
 }
 
 export interface StandardWalletFactory extends WalletFactory {
   create: () => StandardWallet;
 }
 
-export interface AdapterWalletFactory extends WalletFactory {
-  // Only need when use `@solana/wallet-adapter-*`
-  adapter: Adapter;
+export interface AdapterWalletFactory extends WalletFactory<AdapterWallet> {}
+
+export interface MetaMaskSnapWalletFactory extends WalletFactory<AdapterWallet> {
+  isMetaMaskSnap: boolean;
+  adapterBuilder: () => Adapter;
 }
 
 export interface WalletConnectWalletFactory extends WalletFactory {
-  adapter: WalletConnectWalletAdapter;
-  isWalletConnect: boolean;
+  create: (getWalletConnectProvider: any) => WalletConnectWallet;
 }
 
 export type WalletFactoryBuilder = (
-  adapter: Adapter,
+  adapter: Adapter | (() => Adapter),
   walletMetadata: WalletMetadata,
-) => AdapterWalletFactory;
+) => () => AdapterWalletFactory;
 
 export type StandardWalletFactoryBuilder = (
   walletMetadata: WalletMetadata,
-) => StandardWalletFactory;
+) => () => StandardWalletFactory;
 
 export type WalletConnectWalletFactoryBuilder = (
   adapter: WalletConnectWalletAdapter,
   walletMetadata: WalletMetadata,
-) => WalletConnectWalletFactory;
+) => () => WalletConnectWalletFactory;
